@@ -23,7 +23,7 @@ function Signup() {
 	return (
 		<div className="min-h-screen flex">
 			<div className="flex flex-col justify-center w-full md:w-2/3 p-10 bg-white shadow-lg">
-				<h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
+				<h1 className="text-3xl font-bold text-center text-blue-600 mb-68">
 					Sign up as a Mentee
 				</h1>
 				{submitted ? (
