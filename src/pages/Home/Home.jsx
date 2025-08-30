@@ -7,7 +7,7 @@ function Home() {
     <div className="Home">
       {/* Hero Section */}
       <section className="bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center md:justify-between">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center text-center">
           {/* Left side image */}
           {/* <div className="flex-1 mb-8 md:mb-0">
             <img
@@ -18,7 +18,7 @@ function Home() {
           </div> */}
 
           {/* Right side content */}
-          <div className="flex-1 text-left" style={{ marginLeft: 20 }}>
+          <div className="flex-1">
             <p className="text-base md:text-lg text-gray-600 mb-3 font-semibold">
               Learn a new skill, launch a project, land your dream career.
             </p>
@@ -49,12 +49,12 @@ function Home() {
             </h1>
 
             {/* Search bar */}
-            <div className="mb-8" style={{ maxWidth: 520 }}>
+            <div className="mb-8 mx-auto" style={{ maxWidth: 520 }}>
               <SearchBtn />
             </div>
 
             {/* Category pills */}  
-            <div className="flex flex-wrap justify-start gap-3 text-base">
+            <div className="flex flex-wrap justify-center gap-3 text-base">
               {[
                 // "Product Managers",
                 // "Career Coaches",
