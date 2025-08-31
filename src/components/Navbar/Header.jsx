@@ -34,34 +34,7 @@ function Header() {
           <LoginBtn />
         </div>
       </div>
-    <hr />
-   {/* Bottom Row */}
-  <div className="max-w-7xl mx-auto px-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-b-lg shadow-sm">
-    <nav className="grid grid-flow-col auto-cols-[max-content] overflow-x-auto no-scrollbar text-blue-900 text-base font-semibold py-3">
-      {[
-        "Engineering Mentors",
-        "Design Mentors",
-        "Startup Mentors",
-        "Product Managers",
-        "Marketing Coaches",
-        "Leadership Mentors",
-        "Career Coaches",
-        "Top Mentors"
-      ].map((item, idx) => (
-        <Link
-          key={idx}
-          to={`/${item.toLowerCase().replace(/\s+/g, '')}`}
-          className="px-6 py-2 text-center hover:text-blue-600 hover:bg-blue-100 transition-colors rounded-lg"
-        >
-          {item}
-        </Link>
-      ))}
-    </nav>
-  </div>
-
-
-
-
+      <hr />
     </header>
   );
 }
