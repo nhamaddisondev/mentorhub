@@ -23,6 +23,7 @@ export default function MentorForm() {
     reason: "",
     achievement: ""
   });
+
   const [errors, setErrors] = useState({});
 
   const handlePhotoChange = (e) => {
@@ -34,25 +35,37 @@ export default function MentorForm() {
   };
 
   const validateStep1 = () => {
-    const newErrors = {};
-    if (!photo) newErrors.photo = "This field is required.";
-    if (!formData.firstName) newErrors.firstName = "This field is required.";
-    if (!formData.lastName) newErrors.lastName = "This field is required.";
-    if (!formData.email) newErrors.email = "This field is required.";
-    if (!formData.password) newErrors.password = "This field is required.";
-    if (!formData.jobTitle) newErrors.jobTitle = "This field is required.";
-    if (!formData.location) newErrors.location = "This field is required.";
-    return newErrors;
-  };
+  const newErrors = {};
+  if (!photo) newErrors.photo = "This field is required.";
+  if (!formData.firstName) newErrors.firstName = "This field is required.";
+  if (!formData.lastName) newErrors.lastName = "This field is required.";
+  if (!formData.email) newErrors.email = "This field is required.";
+  if (!formData.password) {
+    newErrors.password = "This field is required.";
+  } else if (formData.password.length < 6) {
+    newErrors.password = "Password must be at least 6 characters long.";
+  }
+  if (!formData.jobTitle) newErrors.jobTitle = "This field is required."; 
+  if (!formData.location) newErrors.location = "This field is required.";
+  return newErrors;
+};
 
-  const validateStep2 = () => {
-    const newErrors = {};
-    if (!formData.category) newErrors.category = "This field is required.";
-    if (!formData.skills) newErrors.skills = "This field is required.";
-    if (!formData.bio) newErrors.bio = "This field is required.";
-    if (!formData.linkedin) newErrors.linkedin = "This field is required.";
-    return newErrors;
-  };
+const validateStep2 = () => {
+  const newErrors = {};
+  if (!formData.category) newErrors.category = "This field is required.";
+  if (!formData.skills) newErrors.skills = "This field is required.";
+  if (!formData.bio) newErrors.bio = "This field is required.";
+  if (!formData.linkedin) {
+    newErrors.linkedin = "This field is required.";
+  } else {
+    // LinkedIn URL validation regex (same as backend)
+    const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|company)\/[a-zA-Z0-9-]+\/?$/;
+    if (!linkedinRegex.test(formData.linkedin)) {
+      newErrors.linkedin = "Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)";
+    }
+  }
+  return newErrors;
+};
 
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
@@ -61,6 +74,7 @@ export default function MentorForm() {
     e.preventDefault();
     const validationErrors = validateStep1();
     setErrors(validationErrors);
+
     if (Object.keys(validationErrors).length === 0) {
       nextStep();
     }
@@ -75,10 +89,46 @@ export default function MentorForm() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Data:", formData);
-    // Submit logic here
+const handleSubmit = (e) => {
+  e.preventDefault();
+  console.log("Form Data:", formData);
+  //logic
+  fetch("http://localhost:2999/api/mentor-signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      role: "mentor", 
+      job_title: formData.jobTitle,
+      company: formData.company ?? null,
+      location: formData.location,
+      category: formData.category,
+      skills: formData.skills,
+      bio: formData.bio,
+      linkedin_url: formData.linkedin,
+      personal_website: formData.website ?? null,
+      intro_video_url: formData.introVideo ?? null,
+      featured_article_url: formData.featuredArticle ?? null,
+      why_become_mentor: formData.reason ?? null,
+      greatest_achievement: formData.achievement ?? null,
+    }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          window.location.href = "../../auth/login";
+          alert("Application submitted successfully!");
+        } else {
+          alert(`Submission failed: ${data.message}`);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Submission failed");
+      });
   };
 
   return (
@@ -162,6 +212,7 @@ export default function MentorForm() {
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* First Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
                     <input
@@ -172,6 +223,7 @@ export default function MentorForm() {
                     />
                     {errors.firstName && <div className="text-red-500 text-sm mt-1">{errors.firstName}</div>}
                   </div>
+                  {/* Last Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
                     <input
@@ -183,8 +235,21 @@ export default function MentorForm() {
                     {errors.lastName && <div className="text-red-500 text-sm mt-1">{errors.lastName}</div>}
                   </div>
                 </div>
-
+                  {/* Password */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <input
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    minLength="6"
+                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
+                </div>
+                  {/* Email */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input
@@ -196,21 +261,20 @@ export default function MentorForm() {
                     />
                     {errors.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Company */}
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Company (optional)</label>
                     <input
-                      name="password"
-                      type="password"
-                      value={formData.password}
+                      name="company"
+                      value={formData.company}
                       onChange={handleChange}
                       className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
+                      />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                      {/* Job Title */}
+                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Job title</label>
                     <input
                       name="jobTitle"
@@ -220,19 +284,12 @@ export default function MentorForm() {
                     />
                     {errors.jobTitle && <div className="text-red-500 text-sm mt-1">{errors.jobTitle}</div>}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Company (optional)</label>
-                    <input
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+                  
                 </div>
-
+                  {/* Location */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <select
                     name="location"
                     value={formData.location}
@@ -246,6 +303,7 @@ export default function MentorForm() {
                   </select>
                   {errors.location && <div className="text-red-500 text-sm mt-1">{errors.location}</div>}
                 </div>
+              </div>
               </div>
 
               <button
@@ -311,16 +369,17 @@ export default function MentorForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
-                  <input
-                    name="linkedin"
-                    value={formData.linkedin}
-                    onChange={handleChange}
-                    type="url"
-                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {errors.linkedin && <div className="text-red-500 text-sm mt-1">{errors.linkedin}</div>}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
+                <input
+                  name="linkedin"
+                  value={formData.linkedin}
+                  onChange={handleChange}
+                  type="url"
+                  placeholder="https://linkedin.com/in/yourusername"
+                  className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {errors.linkedin && <div className="text-red-500 text-sm mt-1">{errors.linkedin}</div>}
+              </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Personal Website (optional)</label>

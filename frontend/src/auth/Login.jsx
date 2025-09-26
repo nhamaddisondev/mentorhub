@@ -2,16 +2,43 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 function Login() {
-  const [role, setRole] = useState("mentee");
+  const [role, setRole] = useState("");
   const [form, setForm] = useState({ username: "", password: "" });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleRoleChange = (e) => {
+    setRole(e.target.value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert(`Logging in as ${role}: ${form.username}`);
+    // login
+    fetch(`http://localhost:2999/api/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+         role: role,
+         email: form.username, 
+         password: form.password
+      })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+          window.location.href = "/";
+        } else {
+          alert(`Login failed: ${data.message}`);
+        }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("Login failed");
+    });
   };
 
   return (
@@ -21,43 +48,31 @@ function Login() {
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Log in
         </h1>
-        {/* Tabs */}
-        <div className="max-w-sm mx-auto w-full">
-          <div className="flex border-b-0 mb-0 justify-center">
-            <button
-              className={`px-5 py-2 border-b-2 text-base font-semibold ${
-                role === "mentee"
-                  ? "border-blue-600 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              onClick={() => setRole("mentee")}
-              type="button"
-            >
-              I'm a mentee
-            </button>
-            <button
-              className={`px-5 py-2 text-base font-semibold ${
-                role === "mentor"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              onClick={() => setRole("mentor")}
-              type="button"
-            >
-              I'm a mentor
-            </button>
-          </div>
-          <hr className="border-gray-300 my-2" />
-        </div>
-
+        
         {/* Form */}
         <form
           className="space-y-5 max-w-sm mx-auto w-full bg-white"
           onSubmit={handleSubmit}
         >
+          {/* Role Selection */}
           <div>
             <label className="block text-gray-700 mb-1 text-base text-left">
-              Email or username
+              I am a
+            </label>
+            <select
+              value={role}
+              onChange={handleRoleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              required
+            >
+              <option value="" disabled>Select your role</option>
+              <option value="mentee">Mentee</option>
+              <option value="mentor">Mentor</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1 text-base text-left">
+              Email
             </label>
             <input
               type="text"
@@ -120,7 +135,7 @@ function Login() {
 
           {/* Sign up */}
           <p className="text-sm mt-3 text-gray-600 text-center">
-            Don’t have an account? <br />
+            Don't have an account? <br />
             <Link to="/auth/Signup" className="text-blue-600 hover:underline">
               Sign up as a mentee
             </Link>{" "}

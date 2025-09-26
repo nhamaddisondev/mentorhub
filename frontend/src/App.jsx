@@ -9,6 +9,8 @@ import Signup from './auth/Signup.jsx';
 import Apply from './mentor/Apply.jsx';
 import PasswordReset from './auth/Password_reset.jsx';
 import Mentor from './pages/Home/Mentor.jsx';
+import Browse from './mentor/Browse.jsx'; 
+import Dashboard from './dashboard/Dashboard.jsx';
 
 function App() {
   return (
@@ -19,6 +21,19 @@ function App() {
         <Route path="/auth/password_reset" element={<PasswordReset />} />
         <Route path="/mentor/apply" element={<Apply />} />
         <Route path="/mentor" element={<Mentor />} />
+        <Route path="/dashboard" element={
+          <>
+            {/* <Header /> */}
+            <Dashboard />
+          </>
+        } />
+        <Route path="/mentor/browse" element={
+          <>
+            <Header />
+            <Browse />
+            <Footer />
+          </>
+        } />
         <Route
           path="*"
           element={
@@ -27,7 +42,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/find-mentor" element={<FindMentor />} />
-                {/* <Route path="/become-mentor" element={<BecomeMentor />} /> */}
               </Routes>
               <Footer />
             </>
