@@ -1,170 +1,337 @@
-import React from "react";
-import {
-  FacebookFilled,
-  TwitterOutlined,
-  LinkedinFilled,
-  GithubFilled,
-  YoutubeFilled,
-  MailOutlined,
-  PhoneOutlined,
-  EnvironmentOutlined,
-} from "@ant-design/icons";
+import React, { useState } from "react";
+import { Typewriter } from "react-simple-typewriter";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import SearchBtn from "../../components/Button/SearchBtn.jsx";
 
-function Footer() {
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { staggerChildren: 0.15, when: "beforeChildren" },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+};
+
+function Home() {
+  // Get token and user info from localStorage (safe parse)
+  const token = localStorage.getItem("token") || "";
+  const rawUser = localStorage.getItem("user");
+  const user = rawUser ? JSON.parse(rawUser) : null;
+  const email = user?.email || "";
+  const role = user?.role || "";
+
+  const getUsername = (email) => {
+    if (!email) return "User";
+    return email.split("@")[0];
+  };
+  const username = getUsername(email);
+
+  // Contact form local state
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [status, setStatus] = useState({ type: "", message: "" });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: "", message: "" });
+
+    // Basic validation
+    if (!form.name || !form.email || !form.message) {
+      setStatus({ type: "error", message: "Please fill all required fields." });
+      return;
+    }
+
+    try {
+      // TODO: Replace with actual API call, e.g.:
+      // const res = await fetch("/api/contact", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(form),
+      // });
+      // const data = await res.json();
+      await new Promise((r) => setTimeout(r, 600)); // simulate
+      setStatus({ type: "success", message: "Message sent successfully. We'll get back soon!" });
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      setStatus({ type: "error", message: "Something went wrong. Please try again." });
+    }
+  };
+
+  // Logged-in view (mentee)
+  if (token && role === "mentee") {
+    return (
+      <div className="Home bg-blue-50 min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome, {username}!</h1>
+        <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-xl">
+          Start connecting with mentors and get ready to take your career to the next level!
+        </p>
+        <Link
+          to="/mentor/browse"
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition"
+        >
+          Browse Mentors
+        </Link>
+      </div>
+    );
+  }
+
+  // Logged-in view (mentor)
+  if (token && role === "mentor") {
+    return (
+      <div className="Home bg-blue-50 min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome, {username}!</h1>
+        <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-xl">
+          As a mentor, there’s an opportunity to guide and inspire the next generation of talent.
+        </p>
+      </div>
+    );
+  }
+
+  // Logged-out view (hero + about + contact)
   return (
-    <footer className="bg-gray-900 text-gray-200">
-      {/* Top section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {/* About Us */}
-          <div>
-            <h3 className="text-lg font-semibold text-white">About Us</h3>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-              KhMentor helps learners and teams master modern web development
-              with practical guides, mentorship, and real-world projects focused
-              on React, Vue, Django, and deployment workflows.
+    <div className="Home bg-white min-h-screen">
+      {/* Hero */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center text-center">
+          <div className="flex-1">
+            <p className="text-base md:text-lg text-gray-600 mb-3 font-semibold">
+              Learn a new skill, launch a project, land a dream career.
             </p>
-            <p className="mt-2 text-sm text-gray-400">
-              Learn faster with hands-on examples, step-by-step roadmaps, and
-              tool comparisons tailored for today’s stacks.
-            </p>
-          </div>
 
-          {/* Get in Touch */}
-          <div>
-            <h3 className="text-lg font-semibold text-white">Get in Touch</h3>
-            <ul className="mt-3 space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <MailOutlined className="text-blue-400" />
-                <span>
-                  Email:{" "}
-                  <a
-                    href="mailto:hello@khmentor.dev"
-                    className="underline hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                  >
-                    hello@khmentor.dev
-                  </a>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-8" id="hero-title">
+              1-on-1{" "}
+              <span className="text-blue-600">
+                <Typewriter
+                  words={["Mentorship", "Coaching", "Guidance", "Support", "Career Growth"]}
+                  loop
+                  cursor
+                  cursorStyle="|"
+                  typeSpeed={70}
+                  deleteSpeed={50}
+                  delaySpeed={1500}
+                />
+              </span>
+            </h1>
+
+            <div className="mb-8 mx-auto" style={{ maxWidth: 520 }}>
+              <SearchBtn />
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-3 text-base">
+              {[].map((category, idx) => (
+                <span
+                  key={idx}
+                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium"
+                >
+                  {category}
                 </span>
-              </li>
-              <li className="flex items-center gap-2">
-                <PhoneOutlined className="text-green-400" />
-                <span>Phone: +855 12 345 678</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <EnvironmentOutlined className="text-red-400" />
-                <span>Location: Phnom Penh, Cambodia</span>
-              </li>
-            </ul>
-
-            {/* Social icons */}
-            <div className="flex items-center gap-4 mt-4">
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="p-2 rounded bg-gray-800 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <FacebookFilled className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                aria-label="X (Twitter)"
-                className="p-2 rounded bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                <TwitterOutlined className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                aria-label="LinkedIn"
-                className="p-2 rounded bg-gray-800 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <LinkedinFilled className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                aria-label="GitHub"
-                className="p-2 rounded bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
-              >
-                <GithubFilled className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                aria-label="YouTube"
-                className="p-2 rounded bg-gray-800 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600"
-              >
-                <YoutubeFilled className="h-5 w-5" />
-              </a>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-lg font-semibold text-white">Stay Updated</h3>
-            <p className="mt-3 text-sm text-gray-300">
-              Get tips on React, Vue, Django, DevOps, and deployment best
-              practices.
-            </p>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="mt-4 flex flex-col sm:flex-row gap-3"
+        {/* Steps */}
+        <motion.div
+          className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8 mt-12"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <motion.div variants={itemVariants} className="p-6 border rounded-lg">
+            <h3 className="text-xl font-semibold mb-2">1. Find a Mentor</h3>
+            <p>Browse profiles, skills, and reviews to find the perfect fit for specific goals.</p>
+          </motion.div>
+          <motion.div variants={itemVariants} className="p-6 border rounded-lg">
+            <h3 className="text-xl font-semibold mb-2">2. Book a Session</h3>
+            <p>Schedule a 1-on-1 video call at a convenient time.</p>
+          </motion.div>
+          <motion.div variants={itemVariants} className="p-6 border rounded-lg">
+            <h3 className="text-xl font-semibold mb-2">3. Start Growing</h3>
+            <p>Get personalized guidance and actionable advice to accelerate a career.</p>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* About Us */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.div
+            className="grid md:grid-cols-2 gap-8 items-center"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.25 }}
+          >
+            <motion.article variants={itemVariants}>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">About KhMentor</h2>
+              <p className="text-gray-700 leading-7 mb-4">
+                KhMentor is a mentorship platform built to connect learners with experienced mentors
+                across web development, data, and DevOps disciplines. The focus is on practical,
+                project-based growth guided by real industry experience.
+              </p>
+              <p className="text-gray-700 leading-7 mb-4">
+                From code reviews and career roadmaps to mock interviews, mentors provide actionable
+                feedback and personalized plans. Progress is tracked with measurable outcomes so that
+                each session drives tangible improvement.
+              </p>
+              <ul className="list-disc pl-5 text-gray-700 space-y-2">
+                <li>Hands-on projects and portfolio guidance</li>
+                <li>Clear roadmaps tailored to current level</li>
+                <li>Tooling support: React, Vue, Django, Cloud, CI/CD</li>
+              </ul>
+
+              <div className="mt-6">
+                <Link
+                  to="/mentor/browse"
+                  className="inline-block bg-blue-600 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+                >
+                  Explore Mentors
+                </Link>
+              </div>
+            </motion.article>
+
+            <motion.div
+              variants={itemVariants}
+              className="p-6 border rounded-lg bg-white shadow-sm"
             >
-              <input
-                type="email"
-                required
-                placeholder="Email address"
-                className="w-full sm:flex-1 rounded-md bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="submit"
-                className="rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <h3 className="text-xl font-semibold mb-3">Why choose us?</h3>
+              <p className="text-gray-700 mb-2">
+                Mentors are vetted for both technical skill and coaching ability, ensuring guidance
+                that’s accurate, empathetic, and aligned with goals.
+              </p>
+              <p className="text-gray-700">
+                Sessions emphasize clarity and momentum—short feedback loops, practical checklists,
+                and realistic milestones that fit a busy schedule.
+              </p>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact Us */}
+      <section className="py-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+            className="p-6 md:p-8 border rounded-lg bg-white"
+          >
+            <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-2">
+              Contact Us
+            </motion.h2>
+            <motion.p variants={itemVariants} className="text-gray-600 mb-6">
+              Questions, feedback, or partnership ideas? Send a message and a reply will be provided shortly.
+            </motion.p>
+
+            {status.message && (
+              <div
+                className={`mb-4 text-sm rounded px-3 py-2 ${
+                  status.type === "success"
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+                role="alert"
               >
-                Subscribe
-              </button>
+                {status.message}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
+              <div className="md:col-span-1">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Name<span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Full name"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="md:col-span-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email<span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="email@example.com"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+                  Subject
+                </label>
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  value={form.subject}
+                  onChange={handleChange}
+                  placeholder="How can we help?"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                  Message<span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="5"
+                  value={form.message}
+                  onChange={handleChange}
+                  placeholder="Write the message..."
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-5 py-2.5 text-white text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Send Message
+                </button>
+              </div>
             </form>
-
-            <p className="mt-3 text-xs text-gray-400">
-              By subscribing, consent is given to receive updates. Unsubscribe
-              any time.
-            </p>
-          </div>
+          </motion.div>
         </div>
-      </div>
-
-      {/* Bottom bar */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400">
-            &copy; 2025 KhMentor. All rights reserved.
-          </p>
-          <ul className="flex items-center gap-6 text-sm text-gray-400">
-            <li>
-              <a
-                href="#"
-                className="hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              >
-                Terms
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              >
-                Privacy
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              >
-                Cookies
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </footer>
+      </section>
+    </div>
   );
 }
 
-export default Footer;
+export default Home;
