@@ -25,12 +25,6 @@ function Header() {
             KhMentor
           </Link>
         </div>
-
-        {/* Search */}
-        <div className="flex-1 max-w-md mx-4">
-          <TopSearchBtn />
-        </div>
-
         {/* Right Side */}
         <div className="flex items-center space-x-4">
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
