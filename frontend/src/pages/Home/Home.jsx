@@ -1,132 +1,170 @@
 import React from "react";
-import { Typewriter } from "react-simple-typewriter";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import SearchBtn from "../../components/Button/SearchBtn.jsx";
+import {
+  FacebookFilled,
+  TwitterOutlined,
+  LinkedinFilled,
+  GithubFilled,
+  YoutubeFilled,
+  MailOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+} from "@ant-design/icons";
 
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { staggerChildren: 0.15, when: "beforeChildren" },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-};
-
-function Home() {
-  // Get token and user info from localStorage (safe parse)
-  const token = localStorage.getItem("token") || "";
-  const rawUser = localStorage.getItem("user");
-  const user = rawUser ? JSON.parse(rawUser) : null;
-  const email = user?.email || "";
-  const role = user?.role || "";
-
-  const getUsername = (email) => {
-    if (!email) return "User";
-    return email.split("@")[0];
-  };
-  const username = getUsername(email);
-
-  // Logged-in view (mentee)
-  if (token && role === "mentee") {
-    return (
-      <div className="Home bg-blue-50 min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome, {username}!</h1>
-        <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-xl">
-          Start connecting with mentors and get ready to take your career to the next level!
-        </p>
-        <Link
-          to="/mentor/browse"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition"
-        >
-          Browse Mentors
-        </Link>
-      </div>
-    );
-  }
-
-  // Logged-in view (mentor)
-  if (token && role === "mentor") {
-    return (
-      <div className="Home bg-blue-50 min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome, {username}!</h1>
-        <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-xl">
-          As a mentor, there’s an opportunity to guide and inspire the next generation of talent.
-        </p>
-      </div>
-    );
-  }
-
-  // Logged-out view (hero)
+function Footer() {
   return (
-    <div className="Home bg-white min-h-screen">
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center text-center">
-          <div className="flex-1">
-            <p className="text-base md:text-lg text-gray-600 mb-3 font-semibold">
-              Learn a new skill, launch a project, land a dream career.
+    <footer className="bg-gray-900 text-gray-200">
+      {/* Top section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {/* About Us */}
+          <div>
+            <h3 className="text-lg font-semibold text-white">About Us</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-300">
+              KhMentor helps learners and teams master modern web development
+              with practical guides, mentorship, and real-world projects focused
+              on React, Vue, Django, and deployment workflows.
             </p>
+            <p className="mt-2 text-sm text-gray-400">
+              Learn faster with hands-on examples, step-by-step roadmaps, and
+              tool comparisons tailored for today’s stacks.
+            </p>
+          </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-8" id="hero-title">
-              1-on-1{" "}
-              <span className="text-blue-600">
-                <Typewriter
-                  words={["Mentorship", "Coaching", "Guidance", "Support", "Career Growth"]}
-                  loop
-                  cursor
-                  cursorStyle="|"
-                  typeSpeed={70}
-                  deleteSpeed={50}
-                  delaySpeed={1500}
-                />
-              </span>
-            </h1>
-
-            <div className="mb-8 mx-auto" style={{ maxWidth: 520 }}>
-              <SearchBtn />
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-3 text-base">
-              {[].map((category, idx) => (
-                <span
-                  key={idx}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium"
-                >
-                  {category}
+          {/* Get in Touch */}
+          <div>
+            <h3 className="text-lg font-semibold text-white">Get in Touch</h3>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <MailOutlined className="text-blue-400" />
+                <span>
+                  Email:{" "}
+                  <a
+                    href="mailto:hello@khmentor.dev"
+                    className="underline hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    hello@khmentor.dev
+                  </a>
                 </span>
-              ))}
+              </li>
+              <li className="flex items-center gap-2">
+                <PhoneOutlined className="text-green-400" />
+                <span>Phone: +855 12 345 678</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <EnvironmentOutlined className="text-red-400" />
+                <span>Location: Phnom Penh, Cambodia</span>
+              </li>
+            </ul>
+
+            {/* Social icons */}
+            <div className="flex items-center gap-4 mt-4">
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="p-2 rounded bg-gray-800 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <FacebookFilled className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                aria-label="X (Twitter)"
+                className="p-2 rounded bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                <TwitterOutlined className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                aria-label="LinkedIn"
+                className="p-2 rounded bg-gray-800 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                <LinkedinFilled className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                aria-label="GitHub"
+                className="p-2 rounded bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+              >
+                <GithubFilled className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                aria-label="YouTube"
+                className="p-2 rounded bg-gray-800 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600"
+              >
+                <YoutubeFilled className="h-5 w-5" />
+              </a>
             </div>
           </div>
-        </div>
 
-        <motion.div
-          className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          <motion.div variants={itemVariants} className="p-6 border rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">1. Find a Mentor</h3>
-            <p>Browse profiles, skills, and reviews to find the perfect fit for specific goals.</p>
-          </motion.div>
-          <motion.div variants={itemVariants} className="p-6 border rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">2. Book a Session</h3>
-            <p>Schedule a 1-on-1 video call at a convenient time.</p>
-          </motion.div>
-          <motion.div variants={itemVariants} className="p-6 border rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">3. Start Growing</h3>
-            <p>Get personalized guidance and actionable advice to accelerate a career.</p>
-          </motion.div>
-        </motion.div>
-      </section>
-    </div>
+          {/* Newsletter */}
+          <div>
+            <h3 className="text-lg font-semibold text-white">Stay Updated</h3>
+            <p className="mt-3 text-sm text-gray-300">
+              Get tips on React, Vue, Django, DevOps, and deployment best
+              practices.
+            </p>
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="mt-4 flex flex-col sm:flex-row gap-3"
+            >
+              <input
+                type="email"
+                required
+                placeholder="Email address"
+                className="w-full sm:flex-1 rounded-md bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Subscribe
+              </button>
+            </form>
+
+            <p className="mt-3 text-xs text-gray-400">
+              By subscribing, consent is given to receive updates. Unsubscribe
+              any time.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-400">
+            &copy; 2025 KhMentor. All rights reserved.
+          </p>
+          <ul className="flex items-center gap-6 text-sm text-gray-400">
+            <li>
+              <a
+                href="#"
+                className="hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              >
+                Terms
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              >
+                Privacy
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              >
+                Cookies
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </footer>
   );
 }
 
-export default Home;
+export default Footer;
