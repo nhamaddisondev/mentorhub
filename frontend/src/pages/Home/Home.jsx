@@ -259,67 +259,117 @@ function Home() {
       </section>
 
       {/* Student Review */}
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
-          {/* Left: photo frame */}
-          <div className="relative">
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-[0_10px_25px_rgba(0,0,0,0.06)]">
-              <img
-                src={StudentLearning}
-                alt="Student studying with laptop"
-                className="w-full h-full object-cover"
-              />
+<section className="py-16 bg-white">
+  <motion.div
+    className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-center"
+    variants={containerVariants}
+    initial="hidden"
+    whileInView="show"
+    viewport={{ once: true, amount: 0.25 }}
+  >
+    {/* Left: photo frame */}
+    <motion.div className="relative" variants={itemVariants}>
+      <motion.div
+        className="rounded-2xl overflow-hidden border border-gray-200 shadow-[0_10px_25px_rgba(0,0,0,0.06)]"
+        whileHover={{ scale: 1.02, rotate: -0.4 }}
+        transition={{ type: "spring", stiffness: 240, damping: 20 }}
+      >
+        <img
+          src={StudentLearning}   // <-- use the imported variable (no quotes)
+          alt="Student studying with laptop"
+          className="w-full h-full object-cover"
+        />
+      </motion.div>
 
-            </div>
-            {/* soft glow accent behind the frame */}
-            <div
-              className="absolute -bottom-6 -left-6 h-28 w-40 rounded-3xl blur-2xl opacity-70"
-              style={{
-                background:
-                  "radial-gradient(120px 80px at 60% 50%, rgba(59,130,246,.35), rgba(59,130,246,0))",
-              }}
-            />
-          </div>
+      {/* soft glow accent behind the frame */}
+      <motion.div
+        className="absolute -bottom-6 -left-6 h-28 w-40 rounded-3xl blur-2xl opacity-70"
+        style={{
+          background:
+            "radial-gradient(120px 80px at 60% 50%, rgba(59,130,246,.35), rgba(59,130,246,0))",
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 0.7, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      />
+    </motion.div>
 
-          {/* Right: text + testimonial card */}
+    {/* Right: text + testimonial card */}
+    <motion.div variants={itemVariants}>
+      <motion.h2
+        className="text-3xl md:text-4xl font-bold tracking-tight mb-4"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.45 }}
+      >
+        Real Learning, Real Results
+      </motion.h2>
+
+      <motion.p
+        className="text-gray-600 leading-7 mb-8"
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4, delay: 0.05 }}
+      >
+        The mentorship program is designed to help students focus and achieve goals through personalized guidance and support.
+      </motion.p>
+
+      {/* Testimonial card */}
+      <motion.div
+        className="relative rounded-2xl bg-white border border-blue-100 shadow-[0_12px_30px_rgba(37,99,235,0.08)] p-6"
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.45, delay: 0.05 }}
+        whileHover={{ scale: 1.01 }}
+      >
+        {/* decorative quote mark */}
+        <motion.div
+          className="absolute -top-3 -left-3 h-10 w-10 rounded-full bg-blue-500 text-white grid place-items-center shadow-md"
+          initial={{ scale: 0.8, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ type: "spring", stiffness: 260, damping: 16 }}
+        >
+          <span className="text-2xl leading-none">“</span>
+        </motion.div>
+
+        <p className="text-gray-700 italic mb-6">
+          The structured approach to mentorship helped me stay focused and make real progress toward my goals. My mentor provided exactly the guidance I needed.
+        </p>
+
+        <div className="flex items-center gap-3">
+          <motion.div
+            className="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white grid place-items-center font-semibold"
+            initial={{ scale: 0.9, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 240, damping: 16, delay: 0.08 }}
+          >
+            S
+          </motion.div>
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Real Learning, Real Results
-            </h2>
-            <p className="text-gray-600 leading-7 mb-8">
-              The mentorship program is designed to help students focus and
-              achieve goals through personalized guidance and support.
-            </p>
-
-            {/* Testimonial card */}
-            <div className="relative rounded-2xl bg-white border border-blue-100 shadow-[0_12px_30px_rgba(37,99,235,0.08)] p-6">
-              {/* decorative quote mark */}
-              <div className="absolute -top-3 -left-3 h-10 w-10 rounded-full bg-blue-500 text-white grid place-items-center shadow-md">
-                <span className="text-2xl leading-none">“</span>
-              </div>
-
-              <p className="text-gray-700 italic mb-6">
-                The structured approach to mentorship helped me stay focused and
-                make real progress toward my goals. My mentor provided exactly
-                the guidance I needed.
-              </p>
-
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white grid place-items-center font-semibold">
-                  S
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">Sarah K.</p>
-                  <p className="text-sm text-gray-500">Student</p>
-                </div>
-              </div>
-
-              {/* corner accent bubble */}
-              <span className="absolute -bottom-3 -right-3 h-8 w-8 rounded-full bg-blue-400/70" />
-            </div>
+            <p className="font-semibold text-gray-900">Sarah K.</p>
+            <p className="text-sm text-gray-500">Student</p>
           </div>
         </div>
-      </section>
+
+        {/* corner accent bubble */}
+        <motion.span
+          className="absolute -bottom-3 -right-3 h-8 w-8 rounded-full bg-blue-400/70"
+          initial={{ scale: 0, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+        />
+      </motion.div>
+    </motion.div>
+  </motion.div>
+</section>
+
 
       {/* Contact Us */}
       <section className="py-16">
