@@ -27,7 +27,7 @@ function SignupMentee() {
     if ((name === "password" || name === "confirmPassword") && form.password === form.confirmPassword) {
       setErrors(prev => ({ ...prev, confirmPassword: "" }));
     }
-  };
+    };
 
   const validateForm = () => {
     const newErrors = {};
@@ -42,7 +42,7 @@ function SignupMentee() {
       newErrors.lastName = "Last name is required";
     } else if (form.lastName.length < 2) {
       newErrors.lastName = "Last name must be at least 2 characters";
-    }
+    } 
     
     if (!form.email.trim()) {
       newErrors.email = "Email is required";
@@ -55,11 +55,10 @@ function SignupMentee() {
     } else if (form.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
-    
+    // Confirm Password
     if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-    
     return newErrors;
   };
 
@@ -92,8 +91,8 @@ function SignupMentee() {
       });
       
       const text = await response.text();
-      console.log("Response status:", response.status);
-      console.log("Response text:", text);
+      // console.log("Response status:", response.status);
+      // console.log("Response text:", text);
       
       let data;
       try {
@@ -121,7 +120,6 @@ function SignupMentee() {
     }
   };
 
-  // ... (keep the same JSX return section)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
@@ -154,8 +152,8 @@ function SignupMentee() {
           </div>
         ) : (
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* ... keep all your existing JSX form elements ... */}
             <div className="grid grid-cols-2 gap-4">
+              {/* First Name */}
               <div>
                 <label htmlFor="firstName" className="block text-gray-700 mb-1 text-left">
                   First Name
@@ -173,7 +171,7 @@ function SignupMentee() {
                   <p className="text-red-500 text-sm mt-1 text-left">{errors.firstName}</p>
                 )}
               </div>
-
+                {/* Last Name */}
               <div>
                 <label htmlFor="lastName" className="block text-gray-700 mb-1 text-left">
                   Last Name
@@ -192,7 +190,7 @@ function SignupMentee() {
                 )}
               </div>
             </div>
-
+              {/* Email */}
             <div>
               <label htmlFor="email" className="block text-gray-700 mb-1 text-left">
                 Email
@@ -210,7 +208,7 @@ function SignupMentee() {
                 <p className="text-red-500 text-sm mt-1 text-left">{errors.email}</p>
               )}
             </div>
-
+              {/* Password */}
             <div>
               <label htmlFor="password" className="block text-gray-700 mb-1 text-left">
                 Password
@@ -228,7 +226,7 @@ function SignupMentee() {
                 <p className="text-red-500 text-sm mt-1 text-left">{errors.password}</p>
               )}
             </div>
-
+              {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-gray-700 mb-1 text-left">
                 Confirm Password
@@ -246,7 +244,7 @@ function SignupMentee() {
                 <p className="text-red-500 text-sm mt-1 text-left">{errors.confirmPassword}</p>
               )}
             </div>
-
+              
             <button
               type="submit"
               disabled={loading}

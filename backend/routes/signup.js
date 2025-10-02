@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/users");
+const jwt = require("jsonwebtoken"); 
 
 router.post("/signup", async (req, res) => {
   try {
@@ -12,7 +13,6 @@ router.post("/signup", async (req, res) => {
       console.log("Missing fields");
       return res.status(400).json({ message: "All fields are required" });
     }
-
 
     // Check if user already exists
     console.log("Checking if user exists for email:", email);
@@ -40,14 +40,23 @@ router.post("/signup", async (req, res) => {
     await newUser.save();
     console.log("User created successfully:", newUser.email);
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: newUser._id, role: newUser.role },
+      process.env.JWT_SECRET || "fallback_secret",
+      { expiresIn: "30d" }
+    );
+
     res.status(201).json({
       message: "User created successfully",
+      token, 
       user: {
         id: newUser._id,
         first_name: newUser.first_name,
         last_name: newUser.last_name,
         email: newUser.email,
-        role: newUser.role
+        role: newUser.role,
+        profile_photo: "" 
       }
     });
 

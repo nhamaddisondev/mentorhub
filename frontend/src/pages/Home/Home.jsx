@@ -7,14 +7,10 @@ function Home() {
 // Get token and user info from localStorage
 const token = localStorage.getItem("token");
 const user = JSON.parse(localStorage.getItem("user"));
-const email = user?.email || "";
-const role = user?.role || "";
+// Combine first and last name into username
+const username = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || "User";
 
-const getUsername = (email) => {
-  if (!email) return "User";
-  return email.split('@')[0];
-};
-  const username = getUsername(email);
+const role = user?.role || "";
 
   // Logged-in view
   if (token && role === "mentee") {

@@ -5,7 +5,10 @@ const User = require("../models/users");
 const Mentor = require("../models/mentor_profile"); 
 const Joi = require("joi");
 
-// validation with Joi
+// CORRECT IMPORT - make sure the path is correct
+const { upload, handleMulterError } = require('../middleware/upload');
+
+// validation schema
 const createUserSchema = Joi.object({
   first_name: Joi.string().min(2).max(30).required(),
   last_name: Joi.string().min(2).max(30).required(),
@@ -26,80 +29,134 @@ const createUserSchema = Joi.object({
   greatest_achievement: Joi.string().max(1000).allow('').optional(),
 });
 
-
-router.post("/mentor-signup", async (req, res) => {
-  try {
-    const { error, value } = createUserSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: error.details[0].message });
+router.post("/mentor-signup", 
+  upload.single('photo'),  
+  (req, res, next) => {
+    // Simple error handling middleware
+    if (req.fileValidationError) {
+      return res.status(400).json({
+        success: false,
+        message: req.fileValidationError
+      });
     }
-
-    const {
-      first_name, last_name, email, password, role, job_title, company, location,
-      category, skills, bio, linkedin_url, personal_website, 
-      intro_video_url, featured_article_url, why_become_mentor, greatest_achievement,
-    } = value;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already exists" });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 1. Create user in Users collection (authentication data)
-    const newUser = new User({
-      first_name, last_name, email, password: hashedPassword, role
-    });
-
-    await newUser.save();
-
-    // 2. Create mentor profile in Mentor collection (mentor-specific data)
-    const newMentor = new Mentor({
-      user_id: newUser._id, // Reference to the user
-      job_title, company, location, category, skills, bio, linkedin_url, personal_website,
-      intro_video_url, featured_article_url, why_become_mentor, greatest_achievement
-    });
-
-    await newMentor.save();
-    res.status(201).json({
-      success: true,
-      message: "Mentor user created successfully",
-      user: {
-        id: newUser._id,
-        first_name: newUser.first_name,
-        last_name: newUser.last_name,
-        email: newUser.email,
-      },
-      mentor_profile: {
-        job_title: newMentor.job_title,
-        company: newMentor.company,
-        category: newMentor.category,
-      }
-    });
-  } catch (error) {
-    console.error("Error creating mentor user:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
-});
-
-router.get('/debug-users', async (req, res) => {
+    next();
+  },
+  async (req, res) => {
     try {
-        const indexes = await mongoose.connection.collection('users').getIndexes();
-        const nullUsers = await User.find({ 
-            $or: [{ userName: null }, { userName: { $exists: false } }] 
+      // Check if mentorData exists in the form data
+      if (!req.body.mentorData) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing mentor data" 
         });
-        
-        res.json({
-            indexes,
-            documentsWithNullUserName: nullUsers.length,
-            sampleNullUsers: nullUsers.slice(0, 3)
+      }
+
+      // Parse the JSON data from FormData
+      let mentorData;
+      try {
+        mentorData = JSON.parse(req.body.mentorData);
+      } catch (parseError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid JSON data in mentorData" 
         });
+      }
+
+      // Validate the parsed data
+      const { error, value } = createUserSchema.validate(mentorData);
+      if (error) {
+        return res.status(400).json({ 
+          success: false, 
+          message: error.details[0].message 
+        });
+      }
+
+      const {
+        first_name, last_name, email, password, role, job_title, company, location,
+        category, skills, bio, linkedin_url, personal_website, 
+        intro_video_url, featured_article_url, why_become_mentor, greatest_achievement,
+      } = value;
+
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "User already exists" 
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Handle photo file - get filename if uploaded
+      const profile_photo = req.file ? req.file.filename : null;
+
+      // 1. Create user in Users collection
+      const newUser = new User({
+        first_name, 
+        last_name, 
+        email, 
+        password: hashedPassword, 
+        role
+      });
+
+      await newUser.save();
+
+      // 2. Create mentor profile in Mentor collection
+      const newMentor = new Mentor({
+        user_id: newUser._id, 
+        job_title, 
+        company, 
+        location, 
+        category, 
+        skills, 
+        bio, 
+        linkedin_url, 
+        personal_website,
+        intro_video_url, 
+        featured_article_url, 
+        why_become_mentor, 
+        greatest_achievement,
+        profile_photo 
+      });
+
+      await newMentor.save();
+      
+      res.status(201).json({
+        success: true,
+        message: "Mentor user created successfully",
+        user: {
+          id: newUser._id,
+          first_name: newUser.first_name,
+          last_name: newUser.last_name,
+          email: newUser.email,
+        },
+        mentor_profile: {
+          job_title: newMentor.job_title,
+          company: newMentor.company,
+          category: newMentor.category,
+          has_photo: !!profile_photo
+        }
+      });
+      
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      console.error("Error creating mentor user:", error);
+      
+      // Handle multer errors
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ 
+          success: false, 
+          message: "File too large. Maximum size is 5MB." 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
-});
+  }
+);
 
 module.exports = router;

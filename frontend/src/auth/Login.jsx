@@ -32,7 +32,7 @@ function Login() {
           localStorage.setItem("user", JSON.stringify(data.user));
           window.location.href = "/";
         } else {
-          alert(`Login failed: ${data.message}`);
+          alert("Login faild: Invalid credentials");
         }
     })
     .catch((error) => {

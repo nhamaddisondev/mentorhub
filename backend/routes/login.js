@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/users");
+const Mentor = require("../models/mentor_profile"); 
+const MenteeProfile = require("../models/mentee_profile"); 
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("../middleware/auth");
 
@@ -30,6 +32,30 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid role" });
     }
 
+    // ✅ FETCH PROFILE DATA BASED ON ROLE
+    let profileData = {};
+    
+    if (user.role === "mentor") {
+      const mentorProfile = await Mentor.findOne({ user_id: user._id });
+      profileData = {
+        profile_photo: mentorProfile?.profile_photo || "",
+      };
+    } else if (user.role === "mentee") {
+      const menteeProfile = await MenteeProfile.findOne({ user: user._id });
+      profileData = {
+        profile_photo: menteeProfile?.profile_photo || "",
+        phone: menteeProfile?.phone || "",
+        location: menteeProfile?.location || "",
+        jobTitle: menteeProfile?.jobTitle || "",
+        linkedinUrl: menteeProfile?.linkedinUrl || "",
+        education: menteeProfile?.education || "",
+        skills: menteeProfile?.skills || [],
+        careerInterests: menteeProfile?.careerInterests || "",
+        goal: menteeProfile?.goal || "",
+        bio: menteeProfile?.bio || "",
+      };
+    }
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -41,10 +67,13 @@ router.post("/login", async (req, res) => {
       token,
       user: { 
         id: user._id, 
+        _id: user._id,
         email: user.email, 
         role: user.role,
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        // ✅ Include all profile fields
+        ...profileData
       },
     });
   } catch (error) {
