@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Camera, Edit2, X, Check } from 'lucide-react'; 
-import InfoRow from './InfoRow'; // Import your external components
+import { Camera, Edit2, X, Check } from 'lucide-react';
+import InfoRow from './InfoRow';
 import TextAreaRow from './TextAreaRow';
+import { validateForm, validateField, isFormValid } from '../../utils/validation/mentor/mentorProfileValidationUtils';
 
 export default function MentorProfile() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -20,6 +21,11 @@ export default function MentorProfile() {
     skills: "",
     bio: "",
     linkedinUrl: "",
+    personalWebsite: "",
+    introVideoUrl: "",
+    featuredArticleUrl: "",
+    whyBecomeMentor: "",
+    greatestAchievement: "",
     profile_photo: "",
   });
   
@@ -47,12 +53,16 @@ export default function MentorProfile() {
               skills: Array.isArray(backendData.skills) ? backendData.skills.join(', ') : (backendData.skills || ""),
               bio: backendData.bio || "",
               linkedinUrl: backendData.linkedin_url || backendData.linkedinUrl || "",
+              personalWebsite: backendData.personal_website || backendData.personalWebsite || "",
+              introVideoUrl: backendData.intro_video_url || backendData.introVideoUrl || "",
+              featuredArticleUrl: backendData.featured_article_url || backendData.featuredArticleUrl || "",
+              whyBecomeMentor: backendData.why_become_mentor || backendData.whyBecomeMentor || "",
+              greatestAchievement: backendData.greatest_achievement || backendData.greatestAchievement || "",
               profile_photo: backendData.profile_photo || "",
             };
             setProfileData(newProfileData);
             setTempData(newProfileData);
             
-            // Update localStorage
             const currentUser = JSON.parse(localStorage.getItem("user"));
             const updatedUser = {
               ...currentUser,
@@ -81,6 +91,11 @@ export default function MentorProfile() {
         skills: Array.isArray(user?.skills) ? user.skills.join(', ') : (user?.skills || ""),
         bio: user?.bio || "",
         linkedinUrl: user?.linkedinUrl || "",
+        personalWebsite: user?.personalWebsite || "",
+        introVideoUrl: user?.introVideoUrl || "",
+        featuredArticleUrl: user?.featuredArticleUrl || "",
+        whyBecomeMentor: user?.whyBecomeMentor || "",
+        greatestAchievement: user?.greatestAchievement || "",
         profile_photo: user?.profile_photo || "",
       };
       setProfileData(newProfileData);
@@ -95,23 +110,16 @@ export default function MentorProfile() {
   }, [userId]);
 
   // Validate form
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!tempData.jobTitle?.trim()) newErrors.jobTitle = 'Job Title is required';
-    if (!tempData.company?.trim()) newErrors.company = 'Company is required';
-    if (!tempData.location?.trim()) newErrors.location = 'Location is required';
-    if (!tempData.category?.trim()) newErrors.category = 'Category is required';
-    if (!tempData.bio?.trim()) newErrors.bio = 'Bio is required';
-    if (!tempData.linkedinUrl?.trim()) newErrors.linkedinUrl = 'LinkedIn URL is required';
-    
-    // Validate LinkedIn URL format
-    if (tempData.linkedinUrl && !tempData.linkedinUrl.startsWith('http')) {
-      newErrors.linkedinUrl = 'Please enter a valid URL starting with http:// or https://';
-    }
-
+  const handleFormValidation = () => {
+    const newErrors = validateForm(tempData);
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isFormValid(newErrors);
+  };
+
+  // Real-time field validation
+  const handleFieldValidation = (name, value) => {
+    const fieldErrors = validateField(name, value, errors);
+    setErrors(fieldErrors);
   };
 
   const handleEdit = () => {
@@ -129,8 +137,8 @@ export default function MentorProfile() {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) {
-      alert('Please fix the errors before saving.');
+    if (!handleFormValidation()) {
+      alert('Please complete all required fields marked with * and ensure all information is correct before saving.');
       return;
     }
 
@@ -151,6 +159,11 @@ export default function MentorProfile() {
         formData.append('skills', tempData.skills || "");
         formData.append('bio', tempData.bio);
         formData.append('linkedinUrl', tempData.linkedinUrl);
+        formData.append('personal_website', tempData.personalWebsite || "");
+        formData.append('intro_video_url', tempData.introVideoUrl || "");
+        formData.append('featured_article_url', tempData.featuredArticleUrl || "");
+        formData.append('why_become_mentor', tempData.whyBecomeMentor || "");
+        formData.append('greatest_achievement', tempData.greatestAchievement || "");
 
         response = await fetch(`http://localhost:2999/api/mentors/${userId}`, {
           method: 'PUT',
@@ -168,6 +181,11 @@ export default function MentorProfile() {
           skills: tempData.skills || "",
           bio: tempData.bio,
           linkedinUrl: tempData.linkedinUrl,
+          personal_website: tempData.personalWebsite || "",
+          intro_video_url: tempData.introVideoUrl || "",
+          featured_article_url: tempData.featuredArticleUrl || "",
+          why_become_mentor: tempData.whyBecomeMentor || "",
+          greatest_achievement: tempData.greatestAchievement || "",
         };
 
         response = await fetch(`http://localhost:2999/api/mentors/${userId}`, {
@@ -199,12 +217,16 @@ export default function MentorProfile() {
           skills: Array.isArray(updatedData.skills) ? updatedData.skills.join(', ') : (updatedData.skills || tempData.skills),
           bio: updatedData.bio || tempData.bio,
           linkedinUrl: updatedData.linkedin_url || updatedData.linkedinUrl || tempData.linkedinUrl,
+          personalWebsite: updatedData.personal_website || updatedData.personalWebsite || tempData.personalWebsite,
+          introVideoUrl: updatedData.intro_video_url || updatedData.introVideoUrl || tempData.introVideoUrl,
+          featuredArticleUrl: updatedData.featured_article_url || updatedData.featuredArticleUrl || tempData.featuredArticleUrl,
+          whyBecomeMentor: updatedData.why_become_mentor || updatedData.whyBecomeMentor || tempData.whyBecomeMentor,
+          greatestAchievement: updatedData.greatest_achievement || updatedData.greatestAchievement || tempData.greatestAchievement,
           profile_photo: selectedFile ? (updatedData.profile_photo || profileData.profile_photo) : profileData.profile_photo,
         };
         
         setProfileData(updatedProfileData);
         
-        // Update localStorage
         const currentUser = JSON.parse(localStorage.getItem("user"));
         const updatedUser = {
           ...currentUser,
@@ -233,10 +255,9 @@ export default function MentorProfile() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    
+    // Real-time validation
+    handleFieldValidation(name, value);
   };
   
   const handlePhotoChange = (e) => {
@@ -283,7 +304,7 @@ export default function MentorProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6 flex justify-between items-center">
@@ -372,6 +393,9 @@ export default function MentorProfile() {
 
             {/* Information Fields */}
             <div className="space-y-0">
+              {/* Basic Information */}
+              <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-blue-500">Basic Information</h2>
+              
               <InfoRow 
                 label="First Name"
                 isEditing={isEditing}
@@ -380,6 +404,7 @@ export default function MentorProfile() {
                 name="firstName"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.firstName}
               />
               <InfoRow 
                 label="Last Name"
@@ -389,6 +414,7 @@ export default function MentorProfile() {
                 name="lastName"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.lastName}
               />
               <InfoRow 
                 label="Email"
@@ -399,7 +425,12 @@ export default function MentorProfile() {
                 type="email"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.email}
               />
+
+              {/* Professional Information */}
+              <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4 pb-2 border-b-2 border-blue-500">Professional Information</h2>
+              
               <InfoRow 
                 label="Job Title"
                 isEditing={isEditing}
@@ -409,6 +440,7 @@ export default function MentorProfile() {
                 placeholder="e.g., Senior Developer, Product Manager"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.jobTitle}
               />
               <InfoRow 
                 label="Company"
@@ -418,7 +450,8 @@ export default function MentorProfile() {
                 name="company"
                 placeholder="Where do you work?"
                 onChange={handleInputChange}
-                required={true}
+                required={false}
+                error={errors.company}
               />
               <InfoRow 
                 label="Location"
@@ -429,6 +462,7 @@ export default function MentorProfile() {
                 placeholder="City, Country"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.location}
               />
               <InfoRow 
                 label="Category"
@@ -439,7 +473,36 @@ export default function MentorProfile() {
                 placeholder="Your expertise area (e.g., Web Development, Data Science)"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.category}
               />
+              <InfoRow 
+                label="Skills"
+                isEditing={isEditing}
+                tempData={tempData}
+                profileData={profileData}
+                name="skills"
+                placeholder="Comma separated skills (e.g., JavaScript, React, Node.js)"
+                onChange={handleInputChange}
+                required={true}
+                error={errors.skills}
+              />
+              
+              <TextAreaRow 
+                label="Bio"
+                isEditing={isEditing}
+                tempData={tempData}
+                profileData={profileData}
+                name="bio"
+                placeholder="Tell us about your experience, expertise, and why you want to mentor..."
+                onChange={handleInputChange}
+                required={true}
+                rows={5}
+                error={errors.bio}
+              />
+
+              {/* Online Presence */}
+              <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4 pb-2 border-b-2 border-blue-500">Online Presence</h2>
+              
               <InfoRow 
                 label="LinkedIn URL"
                 isEditing={isEditing}
@@ -450,27 +513,80 @@ export default function MentorProfile() {
                 placeholder="https://linkedin.com/in/yourprofile"
                 onChange={handleInputChange}
                 required={true}
+                error={errors.linkedinUrl}
               />
               <InfoRow 
-                label="Skills"
+                label="Personal Website"
                 isEditing={isEditing}
                 tempData={tempData}
                 profileData={profileData}
-                name="skills"
-                placeholder="Comma separated skills (e.g., JavaScript, React, Node.js)"
+                name="personalWebsite"
+                type="url"
+                placeholder="https://yourwebsite.com (optional)"
                 onChange={handleInputChange}
+                error={errors.personalWebsite}
+              />
+              <InfoRow 
+                label="Introduction Video URL"
+                isEditing={isEditing}
+                tempData={tempData}
+                profileData={profileData}
+                name="introVideoUrl"
+                type="url"
+                placeholder="YouTube or Vimeo link (optional)"
+                onChange={handleInputChange}
+                error={errors.introVideoUrl}
+              />
+              <InfoRow 
+                label="Featured Article URL"
+                isEditing={isEditing}
+                tempData={tempData}
+                profileData={profileData}
+                name="featuredArticleUrl"
+                type="url"
+                placeholder="Link to your article or blog post (optional)"
+                onChange={handleInputChange}
+                error={errors.featuredArticleUrl}
+              />
+
+              {/* Mentorship Details */}
+              <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4 pb-2 border-b-2 border-blue-500">Mentorship Details</h2>
+              
+              <TextAreaRow 
+                label="Why Do You Want to Become a Mentor?"
+                isEditing={isEditing}
+                tempData={tempData}
+                profileData={profileData}
+                name="whyBecomeMentor"
+                placeholder="Share your motivation for mentoring others... (optional)"
+                onChange={handleInputChange}
+                rows={4}
+                error={errors.whyBecomeMentor}
               />
               <TextAreaRow 
-                label="Bio"
+                label="Greatest Achievement"
                 isEditing={isEditing}
                 tempData={tempData}
                 profileData={profileData}
-                name="bio"
-                placeholder="Tell us about your experience, expertise, and why you want to mentor..."
+                name="greatestAchievement"
+                placeholder="What's your proudest professional achievement? (optional)"
                 onChange={handleInputChange}
-                required={true}
+                rows={4}
+                error={errors.greatestAchievement}
               />
-            </div>           
+            </div>
+
+            {/* Errors Display */}
+            {Object.keys(errors).length > 0 && (
+              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h3 className="text-red-800 font-semibold mb-2">Please fix the following errors:</h3>
+                <ul className="list-disc list-inside text-red-700 text-sm">
+                  {Object.entries(errors).map(([field, error]) => (
+                    <li key={field}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

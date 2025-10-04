@@ -92,18 +92,18 @@ function Browse() {
       name: `${mentor.first_name} ${mentor.last_name}`,
       title: mentor.job_title || "Professional Mentor",
       profilePhoto: getProfilePhotoUrl(mentor.profile_photo),
-      rating: 4.8, // You can add this to your mentor model later
+      rating: 4.8, 
       reviews: 24,
       responseRate: 95,
       responseTime: "2 hours",
       experience: "5+ years",
-      location: mentor.location || "Not specified",
-      currentRole: mentor.job_title ? `${mentor.job_title}${mentor.company ? ` at ${mentor.company}` : ''}` : "Professional Mentor",
+      location: mentor.location,
+      currentRole: `${mentor.job_title}${mentor.company ? ` at ${mentor.company}` : ''}`,
       expertise: mentor.category ? [mentor.category] : ["Professional Mentoring"],
       specialties: {
-        skills: mentorSkills.slice(0, 8) || ["Career Guidance", "Professional Development"]
+        skills: mentorSkills.slice(0, 8)
       },
-      bio: mentor.bio || "Experienced professional passionate about mentoring and helping others grow.",
+      bio: mentor.bio,
       mentorshipStyle: [
         "Personalized guidance",
         "Career strategy planning",
@@ -382,14 +382,14 @@ function Browse() {
                         />
                         <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center hidden">
                           <span className="text-2xl font-bold text-blue-600">
-                            {mentor.first_name?.[0]}{mentor.last_name?.[0]}
+                            {mentor.first_name[0]}{mentor.last_name[0]}
                           </span>
                         </div>
                       </div>
                     ) : (
                       <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
                         <span className="text-2xl font-bold text-blue-600">
-                          {mentor.first_name?.[0]}{mentor.last_name?.[0]}
+                          {mentor.first_name[0]}{mentor.last_name[0]}                          
                         </span>
                       </div>
                     )}
@@ -399,7 +399,7 @@ function Browse() {
                         {mentor.first_name} {mentor.last_name}
                       </h2>
                       <p className="text-gray-500">
-                        {mentor.job_title || "Professional Mentor"}
+                        {mentor.job_title}
                         {mentor.company && ` at ${mentor.company}`}
                       </p>
                       {mentor.location && (
@@ -412,7 +412,7 @@ function Browse() {
                   </div>
                   
                   <p className="text-gray-700 mb-4 line-clamp-3">
-                    {mentor.bio || "Experienced professional passionate about mentoring and helping others grow."}
+                    {mentor.bio || "No bio available."}
                   </p>
                   
                   <div className="flex flex-wrap gap-2 mb-4">

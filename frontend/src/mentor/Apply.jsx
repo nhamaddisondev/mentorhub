@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import Header from "../components/Navbar/Header.jsx";
 import Footer from "../components/Footer/Footer.jsx";
+import { validateStep1, validateStep2, validateField, isStepValid } from "../utils/validation/mentor/mentorFormValidationUtils";
 
 export default function MentorForm() {
   const [step, setStep] = useState(1);
-  const [photoPreview, setPhotoPreview] = useState(null); // For preview URL
-  const [photoFile, setPhotoFile] = useState(null); // Store the actual file
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -32,8 +33,10 @@ export default function MentorForm() {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setPhotoFile(file); // Store the file object
-      setPhotoPreview(URL.createObjectURL(file)); // Create preview URL
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      // Validate photo in real-time
+      handleFieldValidation('photo', file);
     }
   };
 
@@ -47,58 +50,23 @@ export default function MentorForm() {
   }, [photoPreview]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target; // value = what the user typed
+    setFormData(prev => ({ ...prev, [name]: value })); // setFormData updates the state (formData)
+    
+    // Real-time validation
+    handleFieldValidation(name, value);
   };
 
-  // Validation Step 1
-  const validateStep1 = () => {
-    const newErrors = {};
-    if (!photoFile) newErrors.photo = "This field is required.";
-    if (!formData.firstName) newErrors.firstName = "This field is required.";
-    if (!formData.lastName) newErrors.lastName = "This field is required.";
-    if (!formData.password) {
-      newErrors.password = "This field is required.";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters long.";
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-    if (!formData.jobTitle) newErrors.jobTitle = "This field is required."; 
-    if (!formData.email) newErrors.email = "This field is required.";
-    if (!formData.location) newErrors.location = "This field is required.";
-    return newErrors;
+  // Real-time field validation
+  const handleFieldValidation = (name, value) => {
+  // Use the updated formData by creating a temporary copy
+  const updatedFormData = {
+    ...formData,
+    [name]: value
   };
-
-  // Validation Step 2 - FIXED: Moved website validation outside linkedin condition
-  const validateStep2 = () => {
-    const newErrors = {};
-    if (!formData.category) newErrors.category = "This field is required.";
-    if (!formData.skills) newErrors.skills = "This field is required.";
-    if (!formData.bio) {
-      newErrors.bio = "This field is required.";
-    } else if (formData.bio.length < 10) {
-      newErrors.bio = "Bio must be at least 10 characters long."; 
-    }
-    
-    // LinkedIn validation
-    if (!formData.linkedin) {
-      newErrors.linkedin = "This field is required.";
-    } else {
-      const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|company)\/[a-zA-Z0-9-]+\/?$/;
-      if (!linkedinRegex.test(formData.linkedin)) {
-        newErrors.linkedin = "Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)";
-      }
-    }
-    
-    // Website validation
-   if (formData.website) {
-    const websiteRegex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[^\s]*)?$/;
-    if (!websiteRegex.test(formData.website)) {
-      newErrors.website = "Please enter a valid website URL (e.g., https://example.com)";
-    }
-   }
-    return newErrors;
+  
+  const fieldErrors = validateField(name, value, updatedFormData, photoFile, errors);
+  setErrors(fieldErrors);
   };
 
   const nextStep = () => setStep(step + 1);
@@ -106,74 +74,80 @@ export default function MentorForm() {
 
   const handleStep1Submit = (e) => {
     e.preventDefault();
-    const validationErrors = validateStep1();
+    const validationErrors = validateStep1(formData, photoFile);
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length === 0) {
+    if (isStepValid(validationErrors, 1)) {
       nextStep();
+    } else {
+      alert('Please complete all required fields marked with * and ensure all information is correct before proceeding.');
     }
   };
 
   const handleStep2Submit = (e) => {
     e.preventDefault();
-    const validationErrors = validateStep2();
+    const validationErrors = validateStep2(formData);
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
+    
+    if (isStepValid(validationErrors, 2)) {
       nextStep();
+    } else {
+      alert('Please complete all required fields marked with * and ensure all information is correct before proceeding.');
     }
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const data = {
-    first_name: formData.firstName,
-    last_name: formData.lastName,
-    password: formData.password,
-    role: "mentor", 
-    company: formData.company || '',
-    job_title: formData.jobTitle,
-    email: formData.email,
-    location: formData.location,
-    category: formData.category,
-    skills: formData.skills,
-    bio: formData.bio,
-    linkedin_url: formData.linkedin,
-    personal_website: formData.website || '',
-    intro_video_url: formData.introVideo || '',
-    featured_article_url: formData.featuredArticle || '',
-    why_become_mentor: formData.reason || '',
-    greatest_achievement: formData.achievement || '',
+    const data = {
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      password: formData.password,
+      role: "mentor", 
+      company: formData.company || '',
+      job_title: formData.jobTitle,
+      email: formData.email,
+      location: formData.location,
+      category: formData.category,
+      skills: formData.skills,
+      bio: formData.bio,
+      linkedin_url: formData.linkedin,
+      personal_website: formData.website || '',
+      intro_video_url: formData.introVideo || '',
+      featured_article_url: formData.featuredArticle || '',
+      why_become_mentor: formData.reason || '',
+      greatest_achievement: formData.achievement || '',
+    };
+
+    // Use FormData to handle file upload
+    const formDataObj = new FormData();
+    formDataObj.append('mentorData', JSON.stringify(data));
+    
+    // Append photo if it exists
+    if (photoFile) {
+      formDataObj.append('photo', photoFile);
+    }
+
+    fetch("http://localhost:2999/api/mentor-signup", {
+      method: "POST",
+      body: formDataObj,
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Application submitted successfully!");
+        window.location.href = "../../auth/login";
+      } else {
+        alert(`Submission failed: ${data.message}`);
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("Submission failed. Please try again.");
+    });
   };
 
-  // Use FormData to handle file upload
-  const formDataObj = new FormData();
-  formDataObj.append('mentorData', JSON.stringify(data));
-  
-  // Append photo if it exists
-  if (photoFile) {
-    formDataObj.append('photo', photoFile);
-  }
-
-  fetch("http://localhost:2999/api/mentor-signup", {
-    method: "POST",
-    body: formDataObj, // Let browser set Content-Type automatically
-    // Remove Content-Type header when sending FormData
-  })
-  .then((response) => response.json())
-  .then((data) => {
-    if (data.success) {
-      alert("Application submitted successfully!");
-      window.location.href = "../../auth/login";
-    } else {
-      alert(`Submission failed: ${data.message}`);
-    }
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-    alert("Submission failed. Please try again.");
-  });
-};
+  // ... (rest of your JSX remains exactly the same)
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -234,9 +208,9 @@ export default function MentorForm() {
             <form onSubmit={handleStep1Submit} className="space-y-6">
               <div className="flex flex-col items-center">
                 <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-gray-200">
-                  {photoPreview ? ( // FIXED: Changed 'photo' to 'photoPreview'
+                  {photoPreview ? (
                     <img
-                      src={photoPreview} // FIXED: Changed 'photo' to 'photoPreview'
+                      src={photoPreview}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
@@ -262,7 +236,9 @@ export default function MentorForm() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.firstName ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     />
                     {errors.firstName && <div className="text-red-500 text-sm mt-1">{errors.firstName}</div>}
                   </div>
@@ -273,7 +249,9 @@ export default function MentorForm() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.lastName ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     />
                     {errors.lastName && <div className="text-red-500 text-sm mt-1">{errors.lastName}</div>}
                   </div>
@@ -288,7 +266,9 @@ export default function MentorForm() {
                       value={formData.password}
                       onChange={handleChange}
                       minLength="6"
-                      className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.password ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     />
                     {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
                   </div>
@@ -301,7 +281,10 @@ export default function MentorForm() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       minLength="6"
-                      className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      onBlur={() => handleFieldValidation('confirmPassword', formData.confirmPassword)} 
+                      className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     />
                     {errors.confirmPassword && (
                       <p className="text-red-500 text-sm mt-1 text-left">{errors.confirmPassword}</p>
@@ -326,7 +309,9 @@ export default function MentorForm() {
                       name="jobTitle"
                       value={formData.jobTitle}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.jobTitle ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     />
                     {errors.jobTitle && <div className="text-red-500 text-sm mt-1">{errors.jobTitle}</div>}
                   </div>
@@ -341,7 +326,9 @@ export default function MentorForm() {
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.email ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       />
                       {errors.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
                     </div>
@@ -352,7 +339,9 @@ export default function MentorForm() {
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.location ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       >
                         <option value="">Select your location</option>
                         <option value="Cambodia">Cambodia</option>
@@ -386,11 +375,75 @@ export default function MentorForm() {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.category ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
-                    <option value="">Please select...</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Business">Business</option>
+                  {/* Technology & IT */}
+                  <optgroup label="Technology & IT">
+                    <option value="Web Development">Web Development</option>
+                    <option value="Mobile Development">Mobile Development</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Data Science">Data Science</option>
+                    <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    <option value="Machine Learning">Machine Learning</option>
+                    <option value="Cloud Computing">Cloud Computing</option>
+                    <option value="Cybersecurity">Cybersecurity</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Blockchain">Blockchain</option>
+                    <option value="Game Development">Game Development</option>
+                  </optgroup>
+
+                  {/* Business & Management */}
+                  <optgroup label="Business & Management">
+                    <option value="Entrepreneurship">Entrepreneurship</option>
+                    <option value="Startups">Startups</option>
+                    <option value="Product Management">Product Management</option>
+                    <option value="Project Management">Project Management</option>
+                    <option value="Business Strategy">Business Strategy</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Accounting">Accounting</option>
+                    <option value="Investment">Investment</option>
+                  </optgroup>
+
+                  {/* Design & Creative */}
+                  <optgroup label="Design & Creative">
+                    <option value="UI/UX Design">UI/UX Design</option>
+                    <option value="Graphic Design">Graphic Design</option>
+                    <option value="Product Design">Product Design</option>
+                    <option value="Motion Design">Motion Design</option>
+                    <option value="Brand Design">Brand Design</option>
+                  </optgroup>
+
+                  {/* Marketing & Sales */}
+                  <optgroup label="Marketing & Sales">
+                    <option value="Digital Marketing">Digital Marketing</option>
+                    <option value="Content Marketing">Content Marketing</option>
+                    <option value="Social Media Marketing">Social Media Marketing</option>
+                    <option value="SEO/SEM">SEO/SEM</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Business Development">Business Development</option>
+                  </optgroup>
+
+                  {/* Career & Personal Development */}
+                  <optgroup label="Career & Personal Development">
+                    <option value="Career Development">Career Development</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="Public Speaking">Public Speaking</option>
+                    <option value="Interview Preparation">Interview Preparation</option>
+                    <option value="Resume Writing">Resume Writing</option>
+                  </optgroup>
+
+                  {/* Other Industries */}
+                  <optgroup label="Other Industries">
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Legal">Legal</option>
+                    <option value="Real Estate">Real Estate</option>
+                    <option value="Non-profit">Non-profit</option>
+                    <option value="Government">Government</option>
+                    <option value="Other">Other</option>
+                  </optgroup>
                   </select>
                   {errors.category && <div className="text-red-500 text-sm mt-1">{errors.category}</div>}
                 </div>
@@ -402,7 +455,9 @@ export default function MentorForm() {
                     value={formData.skills}
                     onChange={handleChange}
                     placeholder="Add a new skill..."
-                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.skills ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
                   {errors.skills && <div className="text-red-500 text-sm mt-1">{errors.skills}</div>}
                   <p className="text-xs text-gray-500 mt-1">
@@ -418,7 +473,9 @@ export default function MentorForm() {
                     name="bio"
                     value={formData.bio}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.bio ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     rows="5"
                   ></textarea>
                   {errors.bio && <div className="text-red-500 text-sm mt-1">{errors.bio}</div>}
@@ -436,7 +493,9 @@ export default function MentorForm() {
                     onChange={handleChange}
                     type="url"
                     placeholder="https://linkedin.com/in/yourusername"
-                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.linkedin ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
                   {errors.linkedin && <div className="text-red-500 text-sm mt-1">{errors.linkedin}</div>}
                 </div>
@@ -448,7 +507,9 @@ export default function MentorForm() {
                     value={formData.website}
                     onChange={handleChange}
                     type="url"
-                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.website ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
                   {errors.website && <div className="text-red-500 text-sm mt-1">{errors.website}</div>}
                   <p className="text-xs text-gray-500 mt-1">You can add your blog, GitHub profile or similar here</p>

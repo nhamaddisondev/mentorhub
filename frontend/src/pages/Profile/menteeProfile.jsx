@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Camera, Edit2, X, Check } from 'lucide-react'; 
 import InfoRow from './InfoRow';
 import TextAreaRow from './TextAreaRow';
+import { validateForm, validateField, isFormValid } from '../../utils/validation/mentee/menteeProfileValidationUtils';
 
 export default function MenteeProfile() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -27,9 +28,9 @@ export default function MenteeProfile() {
   
   const [tempData, setTempData] = useState({...profileData});
   const [selectedFile, setSelectedFile] = useState(null);
+  const [errors, setErrors] = useState({});
 
   // Function to load data from localStorage
-  // Uses || "" to provide empty string fallbacks
   const loadLocalStorageData = () => {
     const newProfileData = {
       firstName: user?.first_name || "",
@@ -101,189 +102,209 @@ export default function MenteeProfile() {
     }
   }, [userId]);
 
+  // Real-time field validation
+  const handleFieldValidation = (name, value) => {
+    const fieldErrors = validateField(name, value, errors);
+    setErrors(fieldErrors);
+  };
+
   const handleEdit = () => {
     setIsEditing(true);
     setTempData({...profileData});
     setSelectedFile(null);
+    setErrors({});
   };
 
   const handleCancel = () => {
-  setIsEditing(false);
-  setTempData({...profileData});
-  setSelectedFile(null);
-  
-  // Reset any temporary photo preview
-  if (tempData.profile_photo.startsWith('blob:')) {
-    URL.revokeObjectURL(tempData.profile_photo);
-  }
-};
+    setIsEditing(false);
+    setTempData({...profileData});
+    setSelectedFile(null);
+    setErrors({});
+    
+    // Reset any temporary photo preview
+    if (tempData.profile_photo.startsWith('blob:')) {
+      URL.revokeObjectURL(tempData.profile_photo);
+    }
+  };
 
   const handleSave = async () => {
-  setIsLoading(true);
-  try {
-    let response;
-    
-    if (selectedFile) {
-      // If there's a new photo, use FormData
-      const formData = new FormData();
-      formData.append('profile_photo', selectedFile);
-      
-      // Add all other fields to FormData
-      formData.append('first_name', tempData.firstName);
-      formData.append('last_name', tempData.lastName);
-      formData.append('email', tempData.email);
-      formData.append('phone', tempData.phone || "");
-      formData.append('location', tempData.location || "");
-      formData.append('jobTitle', tempData.jobTitle || "");
-      formData.append('linkedinUrl', tempData.linkedinUrl || "");
-      formData.append('education', tempData.education || "");
-      formData.append('skills', tempData.skills || "");
-      formData.append('careerInterests', tempData.careerInterests || "");
-      formData.append('goal', tempData.goal || "");
-      formData.append('bio', tempData.bio || "");
-
-      console.log('Sending update with FormData (with photo)');
-
-      response = await fetch(`http://localhost:2999/api/mentees/${userId}`, {
-        method: 'PUT',
-        body: formData
-      });
-    } else {
-      // If no new photo, use JSON
-      const updateData = {
-        first_name: tempData.firstName,
-        last_name: tempData.lastName, 
-        email: tempData.email,
-        phone: tempData.phone || "",
-        location: tempData.location || "",
-        jobTitle: tempData.jobTitle || "",
-        linkedinUrl: tempData.linkedinUrl || "",
-        education: tempData.education || "",
-        skills: tempData.skills || "",
-        careerInterests: tempData.careerInterests || "",
-        goal: tempData.goal || "",
-        bio: tempData.bio || "",
-      };
-
-      console.log('Sending update as JSON:', updateData);
-
-      response = await fetch(`http://localhost:2999/api/mentees/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData)
-      });
+    // Validate form before saving
+    const formErrors = validateForm(tempData);
+    if (!isFormValid(formErrors)) {
+      setErrors(formErrors);
+      alert('Please fix the errors before saving.');
+      return;
     }
 
-    const result = await response.json();
+    setIsLoading(true);
+    try {
+      let response;
+      
+      if (selectedFile) {
+        // If there's a new photo, use FormData 
+        const formData = new FormData();
+        formData.append('profile_photo', selectedFile);
+        
+        // Add all other fields to FormData
+        formData.append('first_name', tempData.firstName);
+        formData.append('last_name', tempData.lastName);
+        formData.append('email', tempData.email);
+        formData.append('phone', tempData.phone || "");
+        formData.append('location', tempData.location || "");
+        formData.append('jobTitle', tempData.jobTitle || "");
+        formData.append('linkedinUrl', tempData.linkedinUrl || "");
+        formData.append('education', tempData.education || "");
+        formData.append('skills', tempData.skills || "");
+        formData.append('careerInterests', tempData.careerInterests || "");
+        formData.append('goal', tempData.goal || "");
+        formData.append('bio', tempData.bio || "");
 
-    if (!response.ok) {
-      throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        console.log('Sending update with FormData (with photo)');
+
+        response = await fetch(`http://localhost:2999/api/mentees/${userId}`, {
+          method: 'PUT',
+          body: formData
+        });
+      } else {
+        // If no new photo, use JSON
+        const updateData = {
+          first_name: tempData.firstName,
+          last_name: tempData.lastName, 
+          email: tempData.email,
+          phone: tempData.phone || "",
+          location: tempData.location || "",
+          jobTitle: tempData.jobTitle || "",
+          linkedinUrl: tempData.linkedinUrl || "",
+          education: tempData.education || "",
+          skills: tempData.skills || "",
+          careerInterests: tempData.careerInterests || "",
+          goal: tempData.goal || "",
+          bio: tempData.bio || "",
+        };
+
+        console.log('Sending update as JSON:', updateData);
+
+        response = await fetch(`http://localhost:2999/api/mentees/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData)
+        });
+      }
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
+
+      console.log('Update response:', result);
+
+      // Update both state and localStorage immediately
+      if (result.success && result.data) {
+        const updatedData = result.data;
+        
+        // Update profile state - PRESERVE EXISTING PHOTO IF NO NEW PHOTO
+        const updatedProfileData = {
+          firstName: updatedData.first_name || tempData.firstName,
+          lastName: updatedData.last_name || tempData.lastName,
+          email: updatedData.email || tempData.email,
+          phone: updatedData.phone || tempData.phone,
+          location: updatedData.location || tempData.location,
+          jobTitle: updatedData.jobTitle || tempData.jobTitle,
+          linkedinUrl: updatedData.linkedinUrl || tempData.linkedinUrl,
+          education: updatedData.education || tempData.education,
+          skills: Array.isArray(updatedData.skills) ? updatedData.skills.join(', ') : (updatedData.skills || tempData.skills),
+          careerInterests: updatedData.careerInterests || tempData.careerInterests,
+          goal: updatedData.goal || tempData.goal,
+          bio: updatedData.bio || tempData.bio,
+          profile_photo: selectedFile ? (updatedData.profile_photo || profileData.profile_photo) : profileData.profile_photo,
+        };
+        
+        setProfileData(updatedProfileData);
+        
+        // Update localStorage with current user data
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        const updatedUser = {
+          ...currentUser,
+          first_name: updatedData.first_name || tempData.firstName,
+          last_name: updatedData.last_name || tempData.lastName,
+          email: updatedData.email || tempData.email,
+          phone: updatedData.phone || tempData.phone,
+          location: updatedData.location || tempData.location,
+          jobTitle: updatedData.jobTitle || tempData.jobTitle,
+          linkedinUrl: updatedData.linkedinUrl || tempData.linkedinUrl,
+          education: updatedData.education || tempData.education,
+          skills: updatedData.skills || tempData.skills,
+          careerInterests: updatedData.careerInterests || tempData.careerInterests,
+          goal: updatedData.goal || tempData.goal,
+          bio: updatedData.bio || tempData.bio,
+          profile_photo: selectedFile ? (updatedData.profile_photo || currentUser.profile_photo) : currentUser.profile_photo,
+        };
+        
+        console.log('🔄 Updating localStorage with:', updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+
+      setIsEditing(false);
+      setSelectedFile(null);
+      setErrors({});
+      alert('Profile updated successfully!');
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert(`Error updating profile: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    console.log('Update response:', result);
-
-    // FIXED: Update both state and localStorage immediately
-    if (result.success && result.data) {
-      const updatedData = result.data;
-      
-      // Update profile state - PRESERVE EXISTING PHOTO IF NO NEW PHOTO
-      const updatedProfileData = {
-        firstName: updatedData.first_name || tempData.firstName,
-        lastName: updatedData.last_name || tempData.lastName,
-        email: updatedData.email || tempData.email,
-        phone: updatedData.phone || tempData.phone,
-        location: updatedData.location || tempData.location,
-        jobTitle: updatedData.jobTitle || tempData.jobTitle,
-        linkedinUrl: updatedData.linkedinUrl || tempData.linkedinUrl,
-        education: updatedData.education || tempData.education,
-        skills: Array.isArray(updatedData.skills) ? updatedData.skills.join(', ') : (updatedData.skills || tempData.skills),
-        careerInterests: updatedData.careerInterests || tempData.careerInterests,
-        goal: updatedData.goal || tempData.goal,
-        bio: updatedData.bio || tempData.bio,
-        // ✅ CRITICAL FIX: Preserve photo - use new one if uploaded, otherwise keep existing
-        profile_photo: selectedFile ? (updatedData.profile_photo || profileData.profile_photo) : profileData.profile_photo,
-      };
-      
-      setProfileData(updatedProfileData);
-      
-      // ✅ CRITICAL: Update localStorage with current user data
-      const currentUser = JSON.parse(localStorage.getItem("user"));
-      const updatedUser = {
-        ...currentUser,
-        first_name: updatedData.first_name || tempData.firstName,
-        last_name: updatedData.last_name || tempData.lastName,
-        email: updatedData.email || tempData.email,
-        phone: updatedData.phone || tempData.phone,
-        location: updatedData.location || tempData.location,
-        jobTitle: updatedData.jobTitle || tempData.jobTitle,
-        linkedinUrl: updatedData.linkedinUrl || tempData.linkedinUrl,
-        education: updatedData.education || tempData.education,
-        skills: updatedData.skills || tempData.skills,
-        careerInterests: updatedData.careerInterests || tempData.careerInterests,
-        goal: updatedData.goal || tempData.goal,
-        bio: updatedData.bio || tempData.bio,
-        profile_photo: selectedFile ? (updatedData.profile_photo || currentUser.profile_photo) : currentUser.profile_photo,
-      };
-      
-      console.log('🔄 Updating localStorage with:', updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-
-    setIsEditing(false);
-    setSelectedFile(null);
-    alert('Profile updated successfully!');
-    
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    alert(`Error updating profile: ${error.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTempData(prev => ({
       ...prev,
       [name]: value
     }));
+    
+    // Real-time validation
+    handleFieldValidation(name, value);
   };
   
   const handlePhotoChange = (e) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size too large. Please select an image smaller than 5MB.');
-      return;
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large. Please select an image smaller than 5MB.');
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+      
+      // Clean up previous blob URL to prevent memory leaks
+      if (tempData.profile_photo.startsWith('blob:')) {
+        URL.revokeObjectURL(tempData.profile_photo);
+      }
+      
+      // Create temporary URL for preview
+      const tempUrl = URL.createObjectURL(file);
+      setTempData(prev => ({
+        ...prev,
+        profile_photo: tempUrl
+      }));
+      setSelectedFile(file);
     }
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file.');
-      return;
-    }
-    
-    // Clean up previous blob URL to prevent memory leaks
-    if (tempData.profile_photo.startsWith('blob:')) {
-      URL.revokeObjectURL(tempData.profile_photo);
-    }
-    
-    // Create temporary URL for preview
-    const tempUrl = URL.createObjectURL(file);
-    setTempData(prev => ({
-      ...prev,
-      profile_photo: tempUrl
-    }));
-    setSelectedFile(file);
-  }
-};
+  };
 
   const getProfilePhotoUrl = () => {
     const photo = isEditing ? tempData.profile_photo : profileData.profile_photo;
     
-    console.log('🖼️ Current photo:', photo); // Debug log
+    console.log('🖼️ Current photo:', photo);
     
     if (!photo) return "/default-avatar.png";
     
@@ -295,7 +316,6 @@ export default function MenteeProfile() {
     // If it's just a filename, construct the full URL
     if (photo && !photo.startsWith('http')) {
       const fullUrl = `http://localhost:2999/uploads/profiles/${photo}`;
-      // console.log('🖼️ Constructed URL:', fullUrl); // Debug log
       return fullUrl;
     }
     
@@ -401,6 +421,8 @@ export default function MenteeProfile() {
                 profileData={profileData}
                 name="firstName"
                 onChange={handleInputChange}
+                required={true}
+                error={errors.firstName}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -410,6 +432,8 @@ export default function MenteeProfile() {
                 profileData={profileData}
                 name="lastName"
                 onChange={handleInputChange}
+                required={true}
+                error={errors.lastName}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -420,6 +444,8 @@ export default function MenteeProfile() {
                 name="email"
                 type="email"
                 onChange={handleInputChange}
+                required={true}
+                error={errors.email}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -431,6 +457,7 @@ export default function MenteeProfile() {
                 type="tel"
                 placeholder="Optional"
                 onChange={handleInputChange}
+                error={errors.phone}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -441,6 +468,7 @@ export default function MenteeProfile() {
                 name="location"
                 placeholder="Optional - City, Country"
                 onChange={handleInputChange}
+                error={errors.location}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -451,6 +479,7 @@ export default function MenteeProfile() {
                 name="jobTitle"
                 placeholder="Optional - Your current job title"
                 onChange={handleInputChange}
+                error={errors.jobTitle}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -462,6 +491,7 @@ export default function MenteeProfile() {
                 type="url"
                 placeholder="Optional - Your LinkedIn profile URL"
                 onChange={handleInputChange}
+                error={errors.linkedinUrl}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -472,6 +502,7 @@ export default function MenteeProfile() {
                 name="education"
                 placeholder="Optional - Your educational background"
                 onChange={handleInputChange}
+                error={errors.education}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -482,6 +513,7 @@ export default function MenteeProfile() {
                 name="skills"
                 placeholder="Optional - Comma separated skills (e.g., JavaScript, React, Node.js)"
                 onChange={handleInputChange}
+                error={errors.skills}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -492,6 +524,7 @@ export default function MenteeProfile() {
                 name="careerInterests"
                 placeholder="Optional - Your career goals or interests"
                 onChange={handleInputChange}
+                error={errors.careerInterests}
                 disabled={isLoading}
               />
               <InfoRow 
@@ -502,6 +535,7 @@ export default function MenteeProfile() {
                 name="goal"
                 placeholder="Optional - What do you want to achieve through mentoring?"
                 onChange={handleInputChange}
+                error={errors.goal}
                 disabled={isLoading}
               />
               <TextAreaRow 
@@ -512,9 +546,22 @@ export default function MenteeProfile() {
                 name="bio"
                 placeholder="Optional - Tell us about yourself..."
                 onChange={handleInputChange}
+                error={errors.bio}
                 disabled={isLoading}
               />
             </div>
+
+            {/* Errors Display */}
+            {Object.keys(errors).length > 0 && (
+              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h3 className="text-red-800 font-semibold mb-2">Please fix the following errors:</h3>
+                <ul className="list-disc list-inside text-red-700 text-sm">
+                  {Object.entries(errors).map(([field, error]) => (
+                    <li key={field}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

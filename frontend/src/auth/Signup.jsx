@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { validateForm, validateField, isFormValid } from "../utils/validation/mentee/menteeSignupValidationUtils";
 
 function SignupMentee() {
   const [form, setForm] = useState({
@@ -15,58 +16,25 @@ function SignupMentee() {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+  const { name, value } = e.target;
+  
+  setForm(prevForm => {
+    const updatedForm = { ...prevForm, [name]: value };
     
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
-    }
+    // This runs real-time validation on every keystroke
+    const fieldErrors = validateField(name, value, updatedForm, errors);
+    setErrors(fieldErrors);
     
-    // Clear confirm password error when passwords match
-    if ((name === "password" || name === "confirmPassword") && form.password === form.confirmPassword) {
-      setErrors(prev => ({ ...prev, confirmPassword: "" }));
-    }
-    };
+    return updatedForm;
+  });
+};
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!form.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    } else if (form.firstName.length < 2) {
-      newErrors.firstName = "First name must be at least 2 characters";
-    }
-    
-    if (!form.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    } else if (form.lastName.length < 2) {
-      newErrors.lastName = "Last name must be at least 2 characters";
-    } 
-    
-    if (!form.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = "Email is invalid";
-    }
-    
-    if (!form.password) {
-      newErrors.password = "Password is required";
-    } else if (form.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    // Confirm Password
-    if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-    return newErrors;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
+    const formErrors = validateForm(form);
+    if (!isFormValid(formErrors)) {
       setErrors(formErrors);
       return;
     }
@@ -91,8 +59,6 @@ function SignupMentee() {
       });
       
       const text = await response.text();
-      // console.log("Response status:", response.status);
-      // console.log("Response text:", text);
       
       let data;
       try {
