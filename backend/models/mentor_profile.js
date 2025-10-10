@@ -10,7 +10,7 @@ const mentorSchema = new mongoose.Schema({
     company: { type: String, default: '' },
     location: { type: String, required: true },
     category: { type: String, required: true },
-    skills: { type: String, required: true },
+     skills: { type: String, required: true },
     bio: { type: String, minlength: 10, required: true },
     linkedin_url: { 
       type: String, 

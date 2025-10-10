@@ -1,17 +1,17 @@
-import './App.css'
+import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from './components/Navbar/Header.jsx';
-import Home from './pages/Home/Home.jsx';
-import FindMentor from './pages/Home/FindMentor.jsx';
-import Footer from './components/Footer/Footer.jsx';
-import Login from './auth/Login.jsx';
-import Signup from './auth/Signup.jsx';
-import Apply from './mentor/Apply.jsx';
-import PasswordReset from './auth/Password_reset.jsx';
-import Mentor from './pages/Home/Mentor.jsx';
-import Browse from './mentor/Browse.jsx'; 
-import Dashboard from './dashboard/Dashboard.jsx';
-
+import Header from "./components/Navbar/Header.jsx";
+import Home from "./pages/Home/Home.jsx";
+import FindMentor from "./pages/Home/FindMentor.jsx";
+import Footer from "./components/Footer/Footer.jsx";
+import Login from "./auth/Login.jsx";
+import Signup from "./auth/Signup.jsx";
+import Apply from "./mentor/Apply.jsx";
+import PasswordReset from "./auth/Password_reset.jsx";
+import Mentor from "./pages/Home/Mentor.jsx";
+import Browse from "./mentor/Browse.jsx";
+import Dashboard from "./dashboard/Dashboard.jsx";
+import MentorProfile from "./mentor/MentorProfile.jsx";
 function App() {
   return (
     <Router>
@@ -21,19 +21,37 @@ function App() {
         <Route path="/auth/password_reset" element={<PasswordReset />} />
         <Route path="/mentor/apply" element={<Apply />} />
         <Route path="/mentor" element={<Mentor />} />
-        <Route path="/dashboard" element={
-          <>
-            {/* <Header /> */}
-            <Dashboard />
-          </>
-        } />
-        <Route path="/mentor/browse" element={
-          <>
-            <Header />
-            <Browse />
-            <Footer />
-          </>
-        } />
+        <Route
+          path="/dashboard"
+          element={
+            <>
+              {/* <Header /> */}
+              <Dashboard />
+            </>
+          }
+        />
+        <Route
+          path="/mentor/browse"
+          element={
+            <>
+              <Header />
+              <Browse />
+              <Footer />
+            </>
+          }
+        />
+
+        <Route
+          path="/mentor/:userId"
+          element={
+            <>
+              <Header />
+              <MentorProfile />
+              <Footer />
+            </>
+          }
+        />
+
         <Route
           path="*"
           element={
@@ -52,4 +70,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
