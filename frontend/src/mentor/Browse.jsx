@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 function Browse() {
   const [mentors, setMentors] = useState([]);
@@ -15,9 +16,10 @@ function Browse() {
           "Content-Type": "application/json",
         },
       });
-      
+
       const data = await response.json();
-      
+         console.log(data.mentors); 
+
       if (response.ok) {
         setMentors(data.mentors);
       } else {
@@ -31,6 +33,8 @@ function Browse() {
     }
   };
 
+
+
   useEffect(() => {
     fetchMentors();
   }, []);
@@ -38,7 +42,7 @@ function Browse() {
   // Function to format skills string into array
   const formatSkills = (skillsString) => {
     if (!skillsString) return [];
-    return skillsString.split(',').map(skill => skill.trim());
+    return skillsString.split(",").map((skill) => skill.trim());
   };
 
   if (loading) {
@@ -58,7 +62,7 @@ function Browse() {
         <div className="text-center">
           <div className="text-red-500 text-2xl mb-4">⚠️</div>
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={fetchMentors}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
@@ -74,7 +78,7 @@ function Browse() {
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-6">Browse Mentors</h1>
         <p className="text-lg text-gray-700 mb-8">
-          Find the perfect mentor to guide you on your journey. 
+          Find the perfect mentor to guide you on your journey.
           {mentors.length > 0 && ` Showing ${mentors.length} mentors`}
         </p>
 
@@ -83,16 +87,24 @@ function Browse() {
           {mentors.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">👥</div>
-              <h3 className="text-xl font-semibold text-gray-600">No mentors found</h3>
-              <p className="text-gray-500">Be the first to sign up as a mentor!</p>
+              <h3 className="text-xl font-semibold text-gray-600">
+                No mentors found
+              </h3>
+              <p className="text-gray-500">
+                Be the first to sign up as a mentor!
+              </p>
             </div>
           ) : (
             mentors.map((mentor) => (
-              <div key={mentor._id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+              <div
+                key={mentor._id}
+                className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
+              >
                 <div className="flex items-center mb-4">
                   <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
                     <span className="text-2xl font-bold text-blue-600">
-                      {mentor.first_name?.[0]}{mentor.last_name?.[0]}
+                      {mentor.first_name?.[0]}
+                      {mentor.last_name?.[0]}
                     </span>
                   </div>
                   <div>
@@ -108,28 +120,42 @@ function Browse() {
                     )}
                   </div>
                 </div>
-                
+
                 <p className="text-gray-700 mb-4">
-                  {mentor.bio || "Experienced professional passionate about mentoring and helping others grow."}
+                  {mentor.bio ||
+                    "Experienced professional passionate about mentoring and helping others grow."}
                 </p>
-                
+
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {mentor.skills && formatSkills(mentor.skills).slice(0, 4).map((skill, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                      {skill}
-                    </span>
-                  ))}
-                  {(!mentor.skills || formatSkills(mentor.skills).length === 0) && (
+                  {mentor.skills &&
+                    formatSkills(mentor.skills)
+                      .slice(0, 4)
+                      .map((skill, index) => (
+                        <span
+                          key={index}
+                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                  {(!mentor.skills ||
+                    formatSkills(mentor.skills).length === 0) && (
                     <>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">Mentorship</span>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">Coaching</span>
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        Mentorship
+                      </span>
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        Coaching
+                      </span>
                     </>
                   )}
                 </div>
-                
-                <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
-                  View Profile
-                </button>
+
+                <Link to={`/mentor/${mentor._id}`}>
+                  <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    View Profile
+                  </button>
+                </Link>
               </div>
             ))
           )}
